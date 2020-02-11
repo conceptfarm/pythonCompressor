@@ -1,16 +1,6 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-"""
-ZetCode PyQt5 tutorial 
-
-This example shows how to use a QComboBox widget.
- 
-Author: Jan Bodnar
-Website: zetcode.com 
-Last edited: August 2017
-"""
-
 from PyQt5.QtWidgets import (QWidget, QLabel, QComboBox, QPushButton, QApplication, QStyleFactory,QGridLayout,QSpacerItem,QSizePolicy,QProgressBar)
 from PyQt5.QtCore import Qt, QCoreApplication, QRect
 import sys
@@ -107,13 +97,8 @@ class Example(QWidget):
 				pb.setValue(count)
 		
 
-
-
-
-		
 if __name__ == '__main__':
-	
-
+	#delete this later
 	dirList = ["some1","some2"]
 	
 	for arg in sys.argv:
