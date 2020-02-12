@@ -8,7 +8,15 @@ import os
 import glob
 import errno
 
+def make_sure_path_exists(path):
+    try:
+        os.makedirs(path)
+    except OSError as exception:
+        if exception.errno != errno.EEXIST:
+            raise
 
+
+make_sure_path_exists('c:/ExportedMOVs')
 
 #time as HH:MM:SS.mm as timeobject, framerate as float
 def timeToFrames(t,frameRate):
