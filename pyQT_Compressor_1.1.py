@@ -62,9 +62,6 @@ class Example(QWidget):
 			self.tempPB.setFormat(str(self.inList[i]))
 			self.gridLayout.addWidget(self.tempPB, i+2, 0, 1, 4)
 			self.pbList.append(self.tempPB)
-			#self.tempLbl = QLabel(str(self.inList[i]), self)
-			#self.gridLayout.addWidget(self.tempLbl, i+2, 0, 1, 4)
-			#print(str(dir))
 		
 		spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
 		spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
@@ -99,13 +96,17 @@ class Example(QWidget):
 
 if __name__ == '__main__':
 	#delete this later
-	dirList = ["some1","some2"]
+	#dirList = ["some1","some2"]
+	
+	dirList = []
 	
 	for arg in sys.argv:
 		if os.path.isdir(arg) == True:
 			print(str(os.path.basename(arg)))
 			dirList.append(arg)
 	
+	#sort the list , chech the code below make sure it's right
+	sorted(dirList, key=lambda i: int(os.path.basename(i)))
 	
 	#QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 	#QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
