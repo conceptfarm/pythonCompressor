@@ -6,6 +6,7 @@ from PyQt5.QtCore import Qt, QCoreApplication, QRect
 import sys
 import os
 import time
+
 TIME_LIMIT = 100
 
 class Example(QWidget):
@@ -106,7 +107,7 @@ if __name__ == '__main__':
 			dirList.append(arg)
 	
 	#sort the list , chech the code below make sure it's right
-	sorted(dirList, key=lambda i: int(os.path.basename(i)))
+	dirList = sorted(dirList, key=lambda i: (os.path.basename(i)))
 	
 	#QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 	#QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)

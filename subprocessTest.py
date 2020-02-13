@@ -20,7 +20,7 @@ def timeToFrames(t,frameRate):
 	return floor(t.hour*60*60*60*frameRate + t.minute*60*60*frameRate + t.second*frameRate + t.microsecond/1000000 * frameRate)
 
 #dirPath is (arg in sys.argv) expects a directory, frameRate is float
-def buildFFMPEGcmd(dirPath,frameRate,alpha):
+def buildFFMPEGcmd(dirPath, codec, alpha, frameRate):
 	shotName = str(os.path.basename(dirPath))
 	bf = str(dirPath)
 	
@@ -79,7 +79,12 @@ def buildFFMPEGcmd(dirPath,frameRate,alpha):
 	fMovie = "C:/ExportedMOVs/" + shotName + ".avi"
 	fFile = str( (fFileNames[0])[0:mylist[0]] ) + "%0" + str(decimalChange) + "d." + popularExt
 	
-	fString = '"//fs-01/DeadlineRepository10/submission/FFmpeg/bin/ffmpeg.exe" '+exrOptions+'-framerate '+str(frameRate)+' -y -start_number '+firstFrame+" -i "+"\""+dirPath+"/"+fFile+"\""+' -vcodec utvideo -pred left -pix_fmt gbrp -r '+str(frameRate)+' ' + "\"" + fMovie +"\""
+	pix_fmt = "rgb24"
+	if alpha:
+		pix_fmt="gbrp"
+	
+	
+	fString = '"//fs-01/DeadlineRepository10/submission/FFmpeg/bin/ffmpeg.exe" '+exrOptions+'-framerate '+str(frameRate)+' -y -start_number '+firstFrame+" -i "+"\""+dirPath+"/"+fFile+"\""+' -vcodec '+codec+' -pred left -pix_fmt '+pix_fmt+' -r '+str(frameRate)+' ' + "\"" + fMovie +"\""
 	return fString
 
 #this should run once per session at the top
@@ -90,7 +95,7 @@ durationFrames = 1
 #replace this with dropdown variable
 frameRate = 24
 
-fString = buildFFMPEGcmd("Z:/19-1715_OntarioPlace/01_Frames/FINAL/01_FusionOutput/s07-02", frameRate, False)
+fString = buildFFMPEGcmd("Z:/19-1715_OntarioPlace/01_Frames/FINAL/01_FusionOutput/s07-02", "utvideo", True, frameRate)
 #fString = '"c:\\FFmpeg\\bin\\ffmpeg.exe" -framerate 24 -y -start_number 0 -i "Z:\\19-1715_OntarioPlace\\01_Frames\\FINAL\\01_FusionOutput\\s07-02\\s07-02_.0%03d.tga" -vcodec utvideo -pred left -pix_fmt gbrp -r 24 "C:\\ExportedMOVs\\s01-02.avi"'
 
 
