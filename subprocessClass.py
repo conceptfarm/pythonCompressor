@@ -2,24 +2,24 @@ import subprocess
 import re
 from datetime import datetime
 from math import floor
-from PyQt5.QtWidgets import (QProgressBar)
 import sys
 import os
 import glob
 import errno
-
-
-			
+#from PyQt5.QtCore import QObject
+		
 class pyFFMEGCompress:
 	timeFormat = "%H:%M:%S.%f"
 	exportPath = 'c:/ExportedMOVs'
+	ffmpegLocation = 'c:/ffmpeg/bin/ffmpeg.exe'
 	
 	def __init__(self, dirPath, codec, alpha, frameRate):
 		self.dirPath = dirPath
 		self.codec = codec
 		self.alpha = alpha
 		self.frameRate = frameRate
-	
+		#self.worker = worker
+		
 	def make_sure_path_exists(self, path):
 		try:
 			os.makedirs(path)
@@ -89,7 +89,7 @@ class pyFFMEGCompress:
 		#This is the actual number as string which needs to be converted to integer to remove padding
 		#logF.write(str( (fFileNames[0])[mylist[0]:mylist[len(mylist)-1]+1] ) +'\n')
 		
-		
+		#CHECK HERE IF THE AMOUNT OF FFILENAMES IS EQUAL TO THE LAST MINUS FIRST IS THE SAME
 		firstFrame = str(int((fFileNames[0])[mylist[0]:mylist[len(mylist)-1]+1]))
 		lastFrame = str(int((fFileNames[len(fFileNames)-1])[mylist[0]:mylist[len(mylist)-1]+1]))
 						
@@ -100,18 +100,51 @@ class pyFFMEGCompress:
 		if self.alpha:
 			pix_fmt="gbrp"
 		
-		fString = '"//fs-01/DeadlineRepository10/submission/FFmpeg/bin/ffmpeg.exe" '+exrOptions+'-framerate '+str(self.frameRate)+' -y -start_number '+firstFrame+" -i "+"\""+self.dirPath+"/"+fFile+"\""+' -vcodec '+self.codec+' -pred left -pix_fmt '+pix_fmt+' -r '+str(self.frameRate)+' ' + "\"" + fMovie +"\""
+		fString = "\""+self.ffmpegLocation+"\" "+exrOptions+'-framerate '+str(self.frameRate)+' -y -start_number '+firstFrame+" -i "+"\""+self.dirPath+"/"+fFile+"\""+' -vcodec '+self.codec+' -pred left -pix_fmt '+pix_fmt+' -r '+str(self.frameRate)+' ' + "\"" + fMovie +"\""
 		return fString
+	
+	def printProcess(self, proc, *args, **kwargs):
+		progress_callback = kwargs['progress_callback']
+		errorFFMPEG_callback = kwargs['errorFFMPEG_callback']
+		result = 0
+		for line in proc.stdout:
+			frameLine = re.search("^frame=.*fps=", line)
+			durationLine = re.search("^  Duration: ", line)
+			if (durationLine):
+				dTimeString = re.findall("\d{1,2}:\d{2}:\d{2}.\d{2}", line)
+				if (dTimeString):
+					duration = self.stringToTime(dTimeString[0])
+					durationFrames = self.timeToFrames(duration,self.frameRate)
+			if (frameLine):
+				frameString = re.findall("[0-9]+", line)
+				if (frameString):
+					try:
+						progress_callback.emit(int(frameString[0])/durationFrames * 100)
+						#self.worker.signals.progress.emit(int(frameString[0])/durationFrames * 100)
+						#pySignalObj.emit(int(frameString[0])/durationFrames * 100)
+					except:
+						errorFFMPEG_callback.emit(self.dirPath + " %p%")
+						#self.worker.signals.progress.emit(100)
+						#pySignalObj.emit(100)
+						#traceback.print_exc()
+						#exctype, value = sys.exc_info()[:2]
+						#self.worker.signals.error.emit( (exctype, value, traceback.format_exc()) )
+						#self.worker.signals.error.emit( ("error", "error") )
+						break
+
 
 	def ffmpegCompress(self):
 		self.make_sure_path_exists(self.exportPath)
 		durationFrames = 1
 		fString = self.buildFFMPEGcmd()
+		#print(fString)
 		#fString = '"c:\\FFmpeg\\bin\\ffmpeg.exe" -framerate 24 -y -start_number 0 -i "Z:\\19-1715_OntarioPlace\\01_Frames\\FINAL\\01_FusionOutput\\s07-02\\s07-02_.0%03d.tga" -vcodec utvideo -pred left -pix_fmt gbrp -r 24 "C:\\ExportedMOVs\\s01-02.avi"'
 
-		process = subprocess.Popen(fString,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
+		return subprocess.Popen(fString,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
+		#process = subprocess.Popen(fString,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
+		#self.printProcess(process)
 		#process = subprocess.Popen(fString)
-
+		'''
 		for line in process.stdout:
 			frameLine = re.search("^frame=.*fps=", line)
 			durationLine = re.search("^  Duration: ", line)
@@ -126,10 +159,12 @@ class pyFFMEGCompress:
 					#self.progressBarWidget.setValue((int(frameString[0])/durationFrames * 100))
 					#make this a return? then pass to progressbar setValue method?
 					print(str(int(frameString[0])/durationFrames * 100))
-					
+		'''			
 
-pyComp = pyFFMEGCompress("Z:\\19-1715_OntarioPlace\\01_Frames\\FINAL\\01_FusionOutput\\s07-02","utvideo",False,24)
-pyComp.ffmpegCompress()
+#Use
+#pyComp = pyFFMEGCompress("H:\\VideoProjectsTemp\\FramesTest\\s01-01","utvideo",False,24)
+#ffProc = pyComp.ffmpegCompress()
+#pyComp.printProcess(ffProc)
 
 
 
