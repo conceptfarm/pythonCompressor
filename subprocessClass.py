@@ -32,7 +32,7 @@ class pyFFMEGCompress:
 	
 	#time as HH:MM:SS.mm as timeobject, framerate as float
 	def timeToFrames(self, t, frameRate):
-		return floor(t.hour*60*60*60*frameRate + t.minute*60*60*frameRate + t.second*frameRate + t.microsecond/1000000 * frameRate)
+		return floor(t.hour*60*60*frameRate + t.minute*60*frameRate + t.second*frameRate + t.microsecond/1000000 * frameRate)
 	
 	#time as string as "HH:MM:SS.mm"
 	def stringToTime(self, timeString):
