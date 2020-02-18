@@ -1,9 +1,13 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+#TODO:
+#IF output name from file name then we need to raise error that things will be overwritten
+#or do something else
+
 import os
 import traceback, sys
-from PyQt5.QtWidgets import (QWidget, QLabel, QComboBox, QPushButton, QApplication, QStyleFactory, QGridLayout, QSpacerItem, QSizePolicy, QProgressBar)
+from PyQt5.QtWidgets import (QWidget, QLabel, QComboBox, QPushButton, QApplication, QStyleFactory, QGridLayout, QSpacerItem, QSizePolicy, QProgressBar,QPlainTextEdit,QButtonGroup,QRadioButton )
 from PyQt5.QtCore import Qt, QCoreApplication, QRect, QObject, pyqtSignal, QRunnable, pyqtSlot, QThreadPool
 from subprocessClass import pyFFMEGCompress
 
@@ -40,6 +44,7 @@ class WorkerSignals(QObject):
 	result = pyqtSignal(object)
 	progress = pyqtSignal(int)
 	errorFFMPEG = pyqtSignal(str)
+	#errorString = pyqtSignal(str)
 
 class Worker(QRunnable):
 	'''
@@ -71,6 +76,7 @@ class Worker(QRunnable):
 		# Add the callback to our kwargs
 		self.kwargs['progress_callback'] = self.signals.progress
 		self.kwargs['errorFFMPEG_callback'] = self.signals.errorFFMPEG
+		#self.kwargs['errorString_callback'] = self.signals.errorString
 		
 
 	@pyqtSlot()
@@ -107,6 +113,7 @@ class MainWindow(QWidget):
 	def __init__(self, inList):
 		super().__init__()
 		self.inList = inList
+		self.nameFrom = 'Folder'
 		self.codec = 'utvideo'
 		self.alpha = False
 		self.frameRate = 24
@@ -150,6 +157,20 @@ class MainWindow(QWidget):
 		self.gridLayout.addWidget(self.comboFrameRate, 1, 2, 1, 1)
 		self.gridLayout.addWidget(self.buttonCompress, 1, 3, 1, 1)
 		
+		self.groupBox = QButtonGroup(self)
+				
+		self.radio1 = QRadioButton('Output file name from Folder name',self)
+		self.radio2 = QRadioButton('Output file name from File name',self)
+		self.groupBox.addButton(self.radio1,1)
+		self.groupBox.addButton(self.radio2,2)
+		self.radio1.setChecked(True)
+		
+		self.gridLayout.addWidget(self.radio1, 2, 0, 1, 1)
+		self.gridLayout.addWidget(self.radio2, 2, 2, 1, 1)
+		
+		self.groupBox.buttonClicked[int].connect(self.radioBtnState)
+
+		
 		self.pbList = []
 		
 		for i in range(len(self.inList)):
@@ -163,12 +184,18 @@ class MainWindow(QWidget):
 			if i==0:
 				self.defaulStyle = self.tempPB.styleSheet()
 			
-			self.gridLayout.addWidget(self.tempPB, i+2, 0, 1, 4)
+			self.gridLayout.addWidget(self.tempPB, i+3, 0, 1, 4)
 			self.pbList.append(self.tempPB)
 		
-		spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-		spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
-		self.gridLayout.addItem(spacerItem, len(self.inList)+2, 0, 1, 1)
+		
+		self.errorLlb = QLabel("Output", self)
+		self.gridLayout.addWidget(self.errorLlb, len(self.inList)+4, 0, 1, 4)
+		
+		self.errorText = QPlainTextEdit('',self)
+		self.gridLayout.addWidget(self.errorText, len(self.inList)+5, 0, 1, 4)
+		
+		self.spacerItem = QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding)
+		self.gridLayout.addItem(self.spacerItem, len(self.inList)+6, 0, 1, 1)
 		
 		self.comboCodec.activated[str].connect(self.chooseCodec)
 		self.comboAlpha.activated[str].connect(self.chooseAlpha)
@@ -211,7 +238,13 @@ class MainWindow(QWidget):
 	def currentData(self, widget):
 		return widget.currentText() 
 
-
+	def radioBtnState(self, text):
+		switcher={
+			1:'Folder',
+			2:'File'
+		}
+		self.nameFrom = switcher.get(text,"Invalid day of week")
+		#print(self.nameFrom)
 	
 
 	'''
@@ -226,13 +259,12 @@ class MainWindow(QWidget):
 		kwargs = {'progress_callback':progress_callback, 'errorFFMPEG_callback':errorFFMPEG_callback}
 		pyCompression.printProcess(ffProcess, **kwargs)
 
-		return "Done."
+		return pyCompression.debugString
  
-	def print_output(self, s):
+	def printOutput(self, s):
 		print("Printing output "+ str(s))
 		
-	def thread_complete(self, r):
-		self.i = self.i + 1
+	def threadComplete(self, r):
 		print("THREAD COMPLETE! WITH ERROR " + str(r) )
 
 	def errorPB(self, err):
@@ -248,38 +280,22 @@ class MainWindow(QWidget):
 		pb.setFormat(text + ' %p%')
 		pb.setStyleSheet(self.defaulStyle)
 	
-	#figure out how to queue tasks better
+
 	def compressPress(self):
-		self.i = 0
-		for self.i in range(len(self.pbList)):
-			i = self.i
-			print(i)
-			print(self.i)
-			#print(self.pbList[i].format())
-			#print(self.pbList[i])
-			#print(self.inList[i])
-			
+		for i in range(len(self.pbList)):			
 			self.resetProgressBar(self.pbList[i],self.inList[i])
 			
-
 			worker = Worker(self.execute_this_fn, self.inList[i], self.codec, self.alpha, self.frameRate) # Any other args, kwargs are passed to the run function
-			worker.signals.result.connect(self.print_output)
-			
-			#worker.signals.progress.connect(self.progress_fn)
+			#worker.signals.result.connect(self.printOutput)
+			worker.signals.result.connect(self.errorText.appendPlainText)
 			worker.signals.progress.connect(self.pbList[i].setValue)
-			#worker.signals.errorFFMPEG.connect(lambda n: self.errorPB(n,self.pbList[i]))
 			worker.signals.errorFFMPEG.connect(self.errorPB)
-			worker.signals.finished.connect(self.thread_complete)
-			
-			#This sort of worked, lambda function evals at the time of error not at the time of assignment
-			#so the i is not the actual i of the erroring signal
-			#worker.signals.error.connect(lambda n: self.errorPB(n,self.pbList[i]))#,self.tempPB.setFormat))
+			worker.signals.error.connect(self.errorPB)
+			worker.signals.finished.connect(self.threadComplete)
+			#worker.signals.finished.connect(self.errorText.appendPlainText)
 			
 			# Execute
 			self.threadpool.start(worker)
-
-			#self.threadpool.waitForDone()
-
 
 
 		

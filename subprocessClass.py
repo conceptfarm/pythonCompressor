@@ -6,7 +6,7 @@ import sys
 import os
 import glob
 import errno
-#from PyQt5.QtCore import QObject
+
 		
 class pyFFMEGCompress:
 	timeFormat = "%H:%M:%S.%f"
@@ -18,12 +18,14 @@ class pyFFMEGCompress:
 		self.codec = codec
 		self.alpha = alpha
 		self.frameRate = frameRate
-		#self.worker = worker
+		self.debugString = '---------------------------------------------------------------------------------\n'
+
 		
-	def make_sure_path_exists(self, path):
+	def makeSurePathExists(self, path):
 		try:
 			os.makedirs(path)
 		except OSError as exception:
+			#print('dir already here')
 			if exception.errno != errno.EEXIST:
 				raise
 	
@@ -38,6 +40,10 @@ class pyFFMEGCompress:
 	
 	#dirPath is (arg in sys.argv) expects a directory, frameRate is float
 	def buildFFMPEGcmd(self):
+		
+		self.debugString = self.debugString + self.dirPath +'\n'
+		result = None
+			
 		shotName = str(os.path.basename(self.dirPath))
 		bf = str(self.dirPath)
 		
@@ -90,76 +96,75 @@ class pyFFMEGCompress:
 		#logF.write(str( (fFileNames[0])[mylist[0]:mylist[len(mylist)-1]+1] ) +'\n')
 		
 		#CHECK HERE IF THE AMOUNT OF FFILENAMES IS EQUAL TO THE LAST MINUS FIRST IS THE SAME
-		firstFrame = str(int((fFileNames[0])[mylist[0]:mylist[len(mylist)-1]+1]))
-		lastFrame = str(int((fFileNames[len(fFileNames)-1])[mylist[0]:mylist[len(mylist)-1]+1]))
-						
-		fMovie = "C:/ExportedMOVs/" + shotName + ".avi"
-		fFile = str( (fFileNames[0])[0:mylist[0]] ) + "%0" + str(decimalChange) + "d." + popularExt
+		firstFrame =(int((fFileNames[0])[mylist[0]:mylist[len(mylist)-1]+1]))
+		lastFrame = (int((fFileNames[len(fFileNames)-1])[mylist[0]:mylist[len(mylist)-1]+1]))
 		
-		pix_fmt = "rgb24"
-		if self.alpha:
-			pix_fmt="gbrp"
+		self.debugString = self.debugString + 'From: ' +str(firstFrame)+' To: '+str(lastFrame) +' Total: '+str(lastFrame-firstFrame+1)+'\n'
+		self.debugString = self.debugString+'Frames found: '+str(len(fFileNames))+'\n'
+		self.debugString = self.debugString+'Frames extension is: '+popularExt+'\n'
 		
-		fString = "\""+self.ffmpegLocation+"\" "+exrOptions+'-framerate '+str(self.frameRate)+' -y -start_number '+firstFrame+" -i "+"\""+self.dirPath+"/"+fFile+"\""+' -vcodec '+self.codec+' -pred left -pix_fmt '+pix_fmt+' -r '+str(self.frameRate)+' ' + "\"" + fMovie +"\""
-		return fString
+		#implement here how to get the shot
+		#if by file then get the first file in fFileName
+		#remove trailing numbers
+		newShotName = (re.split("[_.]", fFileNames[0], 0))[0]
+		print(newShotName)
+		
+		if (lastFrame-firstFrame+1)!=len(fFileNames):
+			self.debugString = self.debugString+'\nERROR: Missing frame files.\n'
+			result = None
+		else:							
+			fMovie = "C:/ExportedMOVs/" + shotName + ".avi"
+			fFile = str( (fFileNames[0])[0:mylist[0]] ) + "%0" + str(decimalChange) + "d." + popularExt
+			
+			pix_fmt = "gbrp"
+			if self.alpha:
+				pix_fmt="gbrap"
+			
+			result = "\""+self.ffmpegLocation+"\" "+exrOptions+'-framerate '+str(self.frameRate)+' -y -start_number '+str(firstFrame)+" -i "+"\""+self.dirPath+"/"+fFile+"\""+' -vcodec '+self.codec+' -pred left -pix_fmt '+pix_fmt+' -r '+str(self.frameRate)+' ' + "\"" + fMovie +"\""
+			self.debugString = self.debugString + 'FFMPEG Params:\n'
+			self.debugString = self.debugString + result + '\n'
+		return result
 	
 	def printProcess(self, proc, *args, **kwargs):
 		progress_callback = kwargs['progress_callback']
 		errorFFMPEG_callback = kwargs['errorFFMPEG_callback']
-		result = 0
-		for line in proc.stdout:
-			frameLine = re.search("^frame=.*fps=", line)
-			durationLine = re.search("^  Duration: ", line)
-			if (durationLine):
-				dTimeString = re.findall("\d{1,2}:\d{2}:\d{2}.\d{2}", line)
-				if (dTimeString):
-					duration = self.stringToTime(dTimeString[0])
-					durationFrames = self.timeToFrames(duration,self.frameRate)
-			if (frameLine):
-				frameString = re.findall("[0-9]+", line)
-				if (frameString):
-					try:
-						progress_callback.emit(int(frameString[0])/durationFrames * 100)
-						#self.worker.signals.progress.emit(int(frameString[0])/durationFrames * 100)
-						#pySignalObj.emit(int(frameString[0])/durationFrames * 100)
-					except:
-						errorFFMPEG_callback.emit(self.dirPath + " %p%")
-						#self.worker.signals.progress.emit(100)
-						#pySignalObj.emit(100)
-						#traceback.print_exc()
-						#exctype, value = sys.exc_info()[:2]
-						#self.worker.signals.error.emit( (exctype, value, traceback.format_exc()) )
-						#self.worker.signals.error.emit( ("error", "error") )
-						break
+		
+		if proc != None:
+			for line in proc.stdout:
+				frameLine = re.search("^frame=.*fps=", line)
+				durationLine = re.search("^  Duration: ", line)
+				if (durationLine):
+					dTimeString = re.findall("\d{1,2}:\d{2}:\d{2}.\d{2}", line)
+					if (dTimeString):
+						duration = self.stringToTime(dTimeString[0])
+						durationFrames = self.timeToFrames(duration,self.frameRate)
+				if (frameLine):
+					frameString = re.findall("[0-9]+", line)
+					if (frameString):
+						try:
+							progress_callback.emit(int(frameString[0])/durationFrames * 100)
+						except:
+							self.debugString = self.debugString + 'ERROR: Error in FFMPEG Compression.\n'
+							errorFFMPEG_callback.emit(self.dirPath + " %p%")
+							break
+			self.debugString = self.debugString + '\nSUCCESS:Compressed without errors.\n'
+		else:
+			errorFFMPEG_callback.emit(self.dirPath + " %p%")
 
 
 	def ffmpegCompress(self):
-		self.make_sure_path_exists(self.exportPath)
-		durationFrames = 1
-		fString = self.buildFFMPEGcmd()
-		#print(fString)
-		#fString = '"c:\\FFmpeg\\bin\\ffmpeg.exe" -framerate 24 -y -start_number 0 -i "Z:\\19-1715_OntarioPlace\\01_Frames\\FINAL\\01_FusionOutput\\s07-02\\s07-02_.0%03d.tga" -vcodec utvideo -pred left -pix_fmt gbrp -r 24 "C:\\ExportedMOVs\\s01-02.avi"'
-
-		return subprocess.Popen(fString,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
-		#process = subprocess.Popen(fString,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
-		#self.printProcess(process)
-		#process = subprocess.Popen(fString)
-		'''
-		for line in process.stdout:
-			frameLine = re.search("^frame=.*fps=", line)
-			durationLine = re.search("^  Duration: ", line)
-			if (durationLine):
-				dTimeString = re.findall("\d{1,2}:\d{2}:\d{2}.\d{2}", line)
-				if (dTimeString):
-					duration = self.stringToTime(dTimeString[0])
-					durationFrames = self.timeToFrames(duration,self.frameRate)
-			if (frameLine):
-				frameString = re.findall("[0-9]+", line)
-				if (frameString):
-					#self.progressBarWidget.setValue((int(frameString[0])/durationFrames * 100))
-					#make this a return? then pass to progressbar setValue method?
-					print(str(int(frameString[0])/durationFrames * 100))
-		'''			
+		try:
+			self.makeSurePathExists(self.exportPath)
+			fString = self.buildFFMPEGcmd()
+			#fString = '"c:\\FFmpeg\\bin\\ffmpeg.exe" -framerate 24 -y -start_number 0 -i "Z:\\19-1715_OntarioPlace\\01_Frames\\FINAL\\01_FusionOutput\\s07-02\\s07-02_.0%03d.tga" -vcodec utvideo -pred left -pix_fmt gbrp -r 24 "C:\\ExportedMOVs\\s01-02.avi"'
+			
+			if fString != None:
+				return subprocess.Popen(fString,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
+			else:
+				return None
+		except:
+			self.debugString = self.debugString + 'ERROR: Creating export directory.\n'+self.exportPath+'\n'
+			return None
 
 #Use
 #pyComp = pyFFMEGCompress("H:\\VideoProjectsTemp\\FramesTest\\s01-01","utvideo",False,24)
