@@ -165,8 +165,8 @@ class MainWindow(QWidget):
 		self.groupBox.addButton(self.radio2,2)
 		self.radio1.setChecked(True)
 		
-		self.gridLayout.addWidget(self.radio1, 2, 0, 1, 1)
-		self.gridLayout.addWidget(self.radio2, 2, 2, 1, 1)
+		self.gridLayout.addWidget(self.radio1, 2, 0, 1, 2)
+		self.gridLayout.addWidget(self.radio2, 2, 2, 1, 2)
 		
 		self.groupBox.buttonClicked[int].connect(self.radioBtnState)
 
@@ -201,8 +201,8 @@ class MainWindow(QWidget):
 		self.comboAlpha.activated[str].connect(self.chooseAlpha)
 		self.comboFrameRate.activated[str].connect(self.chooseFrameRate)
 		
-		self.setGeometry(300, 300, 390, 100)
-		self.gridLayout.setGeometry(QRect(19, 19, 581, 94))
+		self.setGeometry(300, 300, 750, 100)
+		#self.gridLayout.setGeometry(QRect(19, 19, 581, 100))
 		self.setWindowTitle('FFMpeg Python Compressor')
 		self.show()
         
@@ -312,8 +312,8 @@ if __name__ == '__main__':
 	#sort the list , chech the code below make sure it's right
 	dirList = sorted(dirList, key=lambda i: (os.path.basename(i)))
 	
-	#QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-	#QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
+	QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
+	QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
 	
 	app = QApplication(sys.argv)
 	app.setStyle('Fusion')
@@ -324,9 +324,9 @@ if __name__ == '__main__':
 	print("phyiscalDpiX ", app.desktop().physicalDpiX())
 	
 	# Enable High DPI display with PyQt5
-	# app.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling)
-	# if hasattr(QStyleFactory, 'AA_UseHighDpiPixmaps'):
-		# app.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps)
+	app.setAttribute(Qt.AA_EnableHighDpiScaling)
+	if hasattr(QStyleFactory, 'AA_UseHighDpiPixmaps'):
+		 app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 	
 	ex = MainWindow(dirList)
 	#print(ex.currentData(ex.comboCodec))
