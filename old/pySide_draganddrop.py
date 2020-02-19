@@ -1,18 +1,19 @@
 """
-A simple example pyside app that demonstrates dragging and dropping
-of files onto a GUI. 
-- This app allows dragging and dropping of an image file 
-that this then displayed in the GUI
+A simple example pyside app that demonstrates dragging and dropping of files onto a GUI. 
+
+- This app allows dragging and dropping of an image file that this then displayed in the GUI
 - Alternatively an image can be loaded using the button
-- This app includes a workaround for using pyside for dragging and dropping
-with OSx
+- This app includes a workaround for using pyside for dragging and dropping with OSx
 - This app should work on Linux, Windows and OSx
+- Updated to use with PyQt5
 """
 
 from __future__ import division, unicode_literals, print_function, absolute_import
 
 #from PySide import QtGui, QtCore
-import PyQt5.QtCore, PyQt5.Gui
+from PyQt5.QtCore import Qt
+from PyQt5.QtWidgets import (QWidget, QLabel, QPushButton, QApplication, QVBoxLayout,QHBoxLayout,QFileDialog )
+from PyQt5.QtGui import QPixmap
 import sys
 import platform
 
@@ -22,7 +23,7 @@ if op_sys == 'Darwin':
 	from Foundation import NSURL
 
 
-class MainWindowWidget(QtGui.QWidget):
+class MainWindowWidget(QWidget):
 	"""
 	Subclass the widget and add a button to load images. 
 	
@@ -33,19 +34,19 @@ class MainWindowWidget(QtGui.QWidget):
 		super(MainWindowWidget, self).__init__()
 
 		# Button that allows loading of images
-		self.load_button = QtGui.QPushButton("Load image")
+		self.load_button = QPushButton("Load image")
 		self.load_button.clicked.connect(self.load_image_but)
 
 		# Image viewing region
-		self.lbl = QtGui.QLabel(self)
+		self.lbl = QLabel(self)
 
 		# A horizontal layout to include the button on the left
-		layout_button = QtGui.QHBoxLayout()
+		layout_button = QHBoxLayout()
 		layout_button.addWidget(self.load_button)
 		layout_button.addStretch()
 
 		# A Vertical layout to include the button layout and then the image
-		layout = QtGui.QVBoxLayout()
+		layout = QVBoxLayout()
 		layout.addLayout(layout_button)
 		layout.addWidget(self.lbl)
 
@@ -63,7 +64,7 @@ class MainWindowWidget(QtGui.QWidget):
 		"""
 		
 		#Get the file location
-		self.fname, _ = QtGui.QFileDialog.getOpenFileName(self, 'Open file')
+		self.fname, _ = QFileDialog.getOpenFileName(self, 'Open file')
 		# Load the image from the location
 		self.load_image()
 
@@ -72,8 +73,8 @@ class MainWindowWidget(QtGui.QWidget):
 		Set the image to the pixmap
 		:return:
 		"""
-		pixmap = QtGui.QPixmap(self.fname)
-		pixmap = pixmap.scaled(500, 500, QtCore.Qt.KeepAspectRatio)
+		pixmap = QPixmap(self.fname)
+		pixmap = pixmap.scaled(500, 500, Qt.KeepAspectRatio)
 		self.lbl.setPixmap(pixmap)
 
 	# The following three methods set up dragging and dropping for the app
@@ -97,7 +98,7 @@ class MainWindowWidget(QtGui.QWidget):
 		:return:
 		"""
 		if e.mimeData().hasUrls:
-			e.setDropAction(QtCore.Qt.CopyAction)
+			e.setDropAction(Qt.CopyAction)
 			e.accept()
 			# Workaround for OSx dragging and dropping
 			for url in e.mimeData().urls():
@@ -114,7 +115,7 @@ class MainWindowWidget(QtGui.QWidget):
 # Run if called directly
 if __name__ == '__main__':
 	# Initialise the application
-	app = QtGui.QApplication(sys.argv)
+	app = QApplication(sys.argv)
 	# Call the widget
 	ex = MainWindowWidget()
 	sys.exit(app.exec_())
