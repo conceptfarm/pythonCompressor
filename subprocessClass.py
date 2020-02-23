@@ -13,11 +13,13 @@ class pyFFMEGCompress:
 	exportPath = 'c:/ExportedMOVs'
 	ffmpegLocation = 'c:/ffmpeg/bin/ffmpeg.exe'
 	
-	def __init__(self, dirPath, codec, alpha, frameRate):
+	def __init__(self, dirPath, codec, alpha, frameRate, nameFrom):
 		self.dirPath = dirPath
 		self.codec = codec
 		self.alpha = alpha
 		self.frameRate = frameRate
+		self.nameFrom = nameFrom
+		self.error = True
 		self.debugString = '---------------------------------------------------------------------------------\n'
 
 		
@@ -106,8 +108,9 @@ class pyFFMEGCompress:
 		#implement here how to get the shot
 		#if by file then get the first file in fFileName
 		#remove trailing numbers
-		newShotName = (re.split("[_.]", fFileNames[0], 0))[0]
-		print(newShotName)
+		if self.nameFrom == 'File':
+			shotName = (re.split("[_.]", fFileNames[0], 0))[0]
+			#print(shotName)
 		
 		if (lastFrame-firstFrame+1)!=len(fFileNames):
 			self.debugString = self.debugString+'\nERROR: Missing frame files.\n'
@@ -128,7 +131,6 @@ class pyFFMEGCompress:
 	def printProcess(self, proc, *args, **kwargs):
 		progress_callback = kwargs['progress_callback']
 		errorFFMPEG_callback = kwargs['errorFFMPEG_callback']
-		
 		if proc != None:
 			for line in proc.stdout:
 				frameLine = re.search("^frame=.*fps=", line)
@@ -148,6 +150,7 @@ class pyFFMEGCompress:
 							errorFFMPEG_callback.emit(self.dirPath + " %p%")
 							break
 			self.debugString = self.debugString + '\nSUCCESS:Compressed without errors.\n'
+			self.error = False
 		else:
 			errorFFMPEG_callback.emit(self.dirPath + " %p%")
 
