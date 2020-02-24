@@ -208,12 +208,12 @@ class MainWindow(QWidget):
 		self.gridLayoutAddMore = QGridLayout()
 		self.gridLayoutAddMore.setContentsMargins(0, 0, 0, 0)
 		
-		self.dragAndDropLabel_1 = QLabel("Drag and Drop more folders here", self)
+		self.dragAndDropLabel_1 = QLabel("Drag and Drop folders here", self)
 		self.dragAndDropLabel_1.setMinimumSize(QSize(120, 40))
 		self.dragAndDropLabel_1.setAlignment(Qt.AlignCenter)
 		
 		self.dragAndDropLabel_2 = QLabel("", self)
-		self.dragAndDropLabel_2.setFixedSize(QSize(40, 40))
+		self.dragAndDropLabel_2.setFixedSize(QSize(20, 40))
 		self.dragAndDropLabel_2.setAlignment(Qt.AlignCenter)
 		self.dragAndDropLabel_2.setPixmap(self.folderPix)
 		
@@ -231,27 +231,21 @@ class MainWindow(QWidget):
 		self.line_2.setLineWidth(2)
 		self.line_2.setFrameShape(QFrame.HLine)
 		self.line_2.setFrameShadow(QFrame.Sunken)
-		'''
-		self.debugLabel = QLabel('Debug:',self)
-		self.debugLabel.setMinimumSize(QSize(0, 20))
-		self.debugLabel.setAlignment(Qt.AlignBottom|Qt.AlignLeading|Qt.AlignLeft)
-		'''
 		
-		self.debugLabel = QPushButton('Show Debug Log',self)
-		self.debugLabel.setCheckable(True)
-		self.debugLabel.clicked[bool].connect(self.showDebugLog)
-		#self.debugLabel.setMinimumSize(QSize(0, 20))
+		self.hideShowLog = QPushButton('Show Log',self)
+		self.hideShowLog.setCheckable(True)
+		self.hideShowLog.clicked[bool].connect(self.showDebugLog)
+		#self.hideShowLog.setMinimumSize(QSize(0, 20))
 		
-		self.errorText = QPlainTextEdit('',self)
-		self.errorText.setReadOnly(True)
-		self.errorText.hide()
+		self.logText = QPlainTextEdit('',self)
+		self.logText.setReadOnly(True)
+		self.logText.hide()
 		
 		self.spacerItem = QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
 		
-		
 		self.gridLayoutDebug.addWidget(self.line_2, 0, 0, 1, 1)
-		self.gridLayoutDebug.addWidget(self.debugLabel, 1, 0, 1, 1)
-		self.gridLayoutDebug.addWidget(self.errorText, 2, 0, 1, 1)
+		self.gridLayoutDebug.addWidget(self.hideShowLog, 1, 0, 1, 1)
+		self.gridLayoutDebug.addWidget(self.logText, 2, 0, 1, 1)
 		self.gridLayoutDebug.addItem(self.spacerItem, 3, 0, 1, 1)
 		
 		self.verticalLayout.addLayout(self.gridLayoutControlls)
@@ -488,16 +482,16 @@ class MainWindow(QWidget):
 	
 	def showDebugLog(self, bol):
 		if bol:
-			self.errorText.show()
-			self.debugLabel.setText('Hide Debug Log')
+			self.logText.show()
+			self.hideShowLog.setText('Hide Log')
 			self.gridLayoutDebug.removeItem(self.spacerItem)
 			self.adjustSize()
 			#self.resize(self.width(), self.height()+80)
 			#self.setMinimumSize(self.size())
 		else:
 			self.gridLayoutDebug.addItem(self.spacerItem)
-			self.errorText.hide()
-			self.debugLabel.setText('Show Debug Log')
+			self.logText.hide()
+			self.hideShowLog.setText('Show Log')
 			#self.setMinimumHeight(100)
 			self.adjustSize()
 			#self.resize(self.width(), 100)
@@ -550,20 +544,18 @@ class MainWindow(QWidget):
 				
 				worker = Worker(self.execute_this_fn, self.inList[i], self.codec, self.alpha, self.frameRate, self.nameFrom, i) # Any other args, kwargs are passed to the run function
 				#worker.signals.result.connect(self.printOutput)
-				worker.signals.result.connect(self.errorText.appendPlainText)
+				worker.signals.result.connect(self.logText.appendPlainText)
 				worker.signals.progress.connect(self.pbList[i].setValue)
 				worker.signals.errorFFMPEG.connect(self.errorPB)
 				worker.signals.error.connect(self.errorPB)
 				worker.signals.finished.connect(self.threadComplete)
-				#worker.signals.finished.connect(self.errorText.appendPlainText)
+				#worker.signals.finished.connect(self.logText.appendPlainText)
 				
 				# Execute
 				self.threadpool.start(worker)
 
 
 if __name__ == '__main__':
-	
-
 	#dirList = []
 	dirList = ['H:\VideoProjectsTemp\FramesTest\s01-01','H:\VideoProjectsTemp\FramesTest\s01-02','H:\VideoProjectsTemp\FramesTest\s01-03']
 	
@@ -592,8 +584,4 @@ if __name__ == '__main__':
 		 app.setAttribute(Qt.AA_UseHighDpiPixmaps)
 	
 	ex = MainWindow(dirList)
-	#print(ex.currentData(ex.comboCodec))
-	#print(ex.currentData(ex.comboAlpha))
-	#print(ex.currentData(ex.comboFrameRate))
-
 	sys.exit(app.exec_())
