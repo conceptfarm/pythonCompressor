@@ -6,7 +6,19 @@
 #check on high dpi monitors
 #interface still glitchy
 #check for ffmpeg not compressed error at the end
+'''
+	error:
+	Error while decoding stream #0:0: Invalid data found when processing input
+	Error while decoding stream #0:0: Invalid data found when processing input-0.0kbits/s speed=N/A
+	    Last message repeated 13 times
+	Cannot determine format of input stream 0:0 after EOF
+	Error marking filters as finished
+	Conversion failed!
 
+	success:
+	video:44611kB audio:0kB subtitle:0kB other streams:0kB global headers:0kB muxing overhead: 0.013489%
+	Output stream .+ (video): [0-9][0-9]+ packets muxed \([0-9][0-9]+ bytes\)
+'''
 import os
 import traceback, sys
 import platform
