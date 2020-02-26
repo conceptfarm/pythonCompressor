@@ -144,7 +144,8 @@ class pyFFMEGCompress:
 					frameString = re.findall("[0-9]+", line)
 					if (frameString):
 						try:
-							progress_callback.emit(int(frameString[0])/durationFrames * 100)
+							#print(frameString[0])
+							progress_callback.emit( (int(frameString[0])) /durationFrames * 100)
 						except:
 							self.debugString = self.debugString + 'ERROR: Error in FFMPEG Compression.\n'
 							errorFFMPEG_callback.emit(self.dirPath + " %p%")
