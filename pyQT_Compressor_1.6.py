@@ -2,8 +2,10 @@
 # -*- coding: utf-8 -*-
 
 #TODO:
-#IF output name from file name then we need to raise error that things will be overwritten
-#or do something else
+#need to check for same name collision
+#check on high dpi monitors
+#interface still glitchy
+#check for ffmpeg not compressed error at the end
 
 import os
 import traceback, sys
