@@ -5,7 +5,9 @@
 #need to check for same name collision
 #check on high dpi monitors
 #interface still glitchy
-#check for ffmpeg not compressed error at the end
+#cancel ffmpeg process 
+#lock interface
+#	disable checkboxes, disable delete buttons - maybe disable everything except progress bar and show log button
 '''
 	error:
 	Error while decoding stream #0:0: Invalid data found when processing input

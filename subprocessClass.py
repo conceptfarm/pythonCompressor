@@ -133,8 +133,12 @@ class pyFFMEGCompress:
 		errorFFMPEG_callback = kwargs['errorFFMPEG_callback']
 		if proc != None:
 			for line in proc.stdout:
-				frameLine = re.search("^frame=.*fps=", line)
-				durationLine = re.search("^  Duration: ", line)
+				
+				frameLine = re.search("^frame=.*fps=", line, re.IGNORECASE)
+				durationLine = re.search("^  Duration: ", line, re.IGNORECASE)
+				completeLine = re.search("video:\d+kB audio:\d+kB subtitle:\d+kB other streams:\d+kB global headers:\d+kB muxing overhead: \d+", line, re.IGNORECASE)
+				errorLine = re.search('error', line, re.IGNORECASE)
+				
 				if (durationLine):
 					dTimeString = re.findall("\d{1,2}:\d{2}:\d{2}.\d{2}", line)
 					if (dTimeString):
@@ -144,14 +148,18 @@ class pyFFMEGCompress:
 					frameString = re.findall("[0-9]+", line)
 					if (frameString):
 						try:
-							#print(frameString[0])
 							progress_callback.emit( (int(frameString[0])) /durationFrames * 100)
 						except:
 							self.debugString = self.debugString + 'ERROR: Error in FFMPEG Compression.\n'
 							errorFFMPEG_callback.emit(self.dirPath + " %p%")
 							break
-			self.debugString = self.debugString + '\nSUCCESS:Compressed without errors.\n'
-			self.error = False
+				if (errorLine):
+					self.debugString = self.debugString + 'ERROR: Error in FFMPEG Compression.\n'
+					errorFFMPEG_callback.emit(self.dirPath + " %p%")
+					break
+				if (completeLine):
+					self.debugString = self.debugString + '\nSUCCESS: Compressed without errors.\n'
+					self.error = False
 		else:
 			errorFFMPEG_callback.emit(self.dirPath + " %p%")
 
