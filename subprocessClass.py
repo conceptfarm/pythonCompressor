@@ -1,12 +1,12 @@
-import subprocess
-import re
-from datetime import datetime
-from math import floor
 import sys
 import os
 import glob
 import errno
+import subprocess
+import re
 
+from datetime import datetime
+from math import floor
 		
 class pyFFMEGCompress:
 	timeFormat = "%H:%M:%S.%f"
@@ -50,7 +50,7 @@ class pyFFMEGCompress:
 		bf = str(self.dirPath)
 		
 		# in backwards order of likelyhood, least likely at the front most at the end
-		fExt = ['gif','exr','jpeg','jpg','tiff','png','tga']
+		fExt = ['gif','exr','jpeg','jpg','tiff','tif','png','tga']
 
 		#find most popular extension
 		popularExt = ""
@@ -61,7 +61,8 @@ class pyFFMEGCompress:
 			if fileCount > prevFileCount :
 				prevFileCount = fileCount
 				popularExt = o
-		
+		print(popularExt)
+
 		if popularExt == "exr":
 			exrOptions = " -gamma 2.2 "
 		
@@ -165,17 +166,20 @@ class pyFFMEGCompress:
 
 
 	def ffmpegCompress(self):
+		err = ''
 		try:
 			self.makeSurePathExists(self.exportPath)
+			err +=' paths exists\n'
 			fString = self.buildFFMPEGcmd()
 			#fString = '"c:\\FFmpeg\\bin\\ffmpeg.exe" -framerate 24 -y -start_number 0 -i "Z:\\19-1715_OntarioPlace\\01_Frames\\FINAL\\01_FusionOutput\\s07-02\\s07-02_.0%03d.tga" -vcodec utvideo -pred left -pix_fmt gbrp -r 24 "C:\\ExportedMOVs\\s01-02.avi"'
-			
+			err +=fString
+			err +='\n '
 			if fString != None:
 				return subprocess.Popen(fString,stdout=subprocess.PIPE, stderr=subprocess.STDOUT,universal_newlines=True)
 			else:
 				return None
 		except:
-			self.debugString = self.debugString + 'ERROR: Creating export directory.\n'+self.exportPath+'\n'
+			self.debugString = self.debugString + 'ERROR: Creating export directory.\n'+self.exportPath+'\n' + err
 			return None
 
 #Use

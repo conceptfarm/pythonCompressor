@@ -24,6 +24,7 @@
 import os
 import traceback, sys
 import platform
+import subprocess
 
 from PyQt5.QtWidgets import (QWidget, QStyle,QLabel, QComboBox, QPushButton, QApplication, QStyleFactory, QGridLayout, QVBoxLayout, QLayout, QSizePolicy, QProgressBar, QPlainTextEdit, QButtonGroup, QRadioButton, QCheckBox, QFrame, QSpacerItem )
 from PyQt5.QtCore import Qt, QCoreApplication, QRect, QObject, pyqtSignal, QRunnable, pyqtSlot, QThreadPool, QSize
@@ -185,8 +186,11 @@ class MainWindow(QWidget):
 		
 		self.frameRateComboBox = QComboBox(self)
 		self.frameRateComboBox.setMinimumSize(80,23)
+		self.frameRateComboBox.addItem("23.976")
 		self.frameRateComboBox.addItem("24.00")
+		self.frameRateComboBox.addItem("29.97")
 		self.frameRateComboBox.addItem("30.00")
+		self.frameRateComboBox.setCurrentIndex(1)
 		self.frameRateComboBox.activated[str].connect(self.chooseFrameRate)
 		
 		self.compressButton = QPushButton('Compress', self)
@@ -259,6 +263,9 @@ class MainWindow(QWidget):
 		self.line_2.setFrameShape(QFrame.HLine)
 		self.line_2.setFrameShadow(QFrame.Sunken)
 		
+		self.exploreOutputBtn = QPushButton('Explore Output',self)
+		self.exploreOutputBtn.clicked[bool].connect(self.exploreOutput)
+
 		self.hideShowLog = QPushButton('Show Log',self)
 		self.hideShowLog.setCheckable(True)
 		self.hideShowLog.clicked[bool].connect(self.showDebugLog)
@@ -271,9 +278,10 @@ class MainWindow(QWidget):
 		self.spacerItem = QSpacerItem(20, 0, QSizePolicy.Minimum, QSizePolicy.Expanding)
 		
 		self.gridLayoutDebug.addWidget(self.line_2, 0, 0, 1, 1)
-		self.gridLayoutDebug.addWidget(self.hideShowLog, 1, 0, 1, 1)
-		self.gridLayoutDebug.addWidget(self.logText, 2, 0, 1, 1)
-		self.gridLayoutDebug.addItem(self.spacerItem, 3, 0, 1, 1)
+		self.gridLayoutDebug.addWidget(self.exploreOutputBtn, 1, 0, 1, 1)
+		self.gridLayoutDebug.addWidget(self.hideShowLog, 2, 0, 1, 1)
+		self.gridLayoutDebug.addWidget(self.logText, 3, 0, 1, 1)
+		self.gridLayoutDebug.addItem(self.spacerItem, 4, 0, 1, 1)
 		
 		self.verticalLayout.addLayout(self.gridLayoutControlls)
 		self.verticalLayout.addLayout(self.gridLayoutProgress)
@@ -554,9 +562,10 @@ class MainWindow(QWidget):
 		
 	def threadComplete(self, r):
 		#print("THREAD COMPLETE! WITH ERROR " + str(r[2]) )
-		if r[1]==False:
+		if r[1] == False:
 			self.lblList[r[2]].setPixmap(self.goodPix)
 			self.pbList[r[2]].setStyleSheet("QProgressBar::chunk {background: QLinearGradient( x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #44dd14,stop: 0.4999 #39c10f,stop: 0.5 #39c10f,stop: 1 #39c10f );border-radius: 3px; border: 1px solid #29880b;}QProgressBar{color:white}")
+			self.pbList[r[2]].setValue(100)
 
 	def errorPB(self, err):
 		for i in range(len(self.pbList)):
@@ -591,10 +600,16 @@ class MainWindow(QWidget):
 				# Execute
 				self.threadpool.start(worker)
 
+	def exploreOutput(self):
+		FILEBROWSER_PATH = os.path.join(os.getenv('WINDIR'), 'explorer.exe')
+		explorePath = os.path.normpath('C:\\ExportedMOVs')
+		subprocess.run([FILEBROWSER_PATH, explorePath])
+		#subprocess.Popen(r'explorer "C:\\ExportedMOVs"')
+
 
 if __name__ == '__main__':
-	#dirList = []
-	dirList = ['H:\VideoProjectsTemp\FramesTest\s01-01','H:\VideoProjectsTemp\FramesTest\s01-02','H:\VideoProjectsTemp\FramesTest\s01-03']
+	dirList = []
+	#dirList = ['C:\\CicadaProjects\\YorkU\\Rhonda']
 	
 	for arg in sys.argv:
 		if os.path.isdir(arg) == True:
