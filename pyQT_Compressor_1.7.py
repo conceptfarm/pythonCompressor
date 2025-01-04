@@ -505,7 +505,7 @@ class MainWindow(QWidget):
 	#########################
 
 if __name__ == '__main__':
-	dirList: list = [r'Z:\24-2231_RealCold-Lockhart Facility\01_Frames\FINAL\01_FusionOutput\s01-07']
+	dirList: list = []
 	
 	for arg in sys.argv:
 		if os.path.isdir(arg) == True:
@@ -514,8 +514,6 @@ if __name__ == '__main__':
 	
 	#sort the list , chech the code below make sure it's right
 	dirList = sorted(dirList, key=lambda i: (os.path.basename(i)))
-	
-	print(dirList)
 	
 	QCoreApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 	QCoreApplication.setAttribute(Qt.AA_UseHighDpiPixmaps, True)
