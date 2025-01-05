@@ -9,13 +9,15 @@ from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
 from lib.AppIcons import AppIcons
+from lib.DarkPalette import QtDarkPalette
 
 APPICONS = AppIcons()
+PALETTE = QtDarkPalette()
 
 class ProgressDelegate(QStyledItemDelegate):
 	def paint(self, painter, option, index):
-		progress = index.data(Qt.UserRole+1000)
-		status = index.data(Qt.UserRole+1001)
+		progress = index.data(Qt.DisplayRole)
+		status = index.data(Qt.UserRole)
 
 		opt = QStyleOptionProgressBar()
 		opt.rect = option.rect.adjusted(5,5,-5,-5)
@@ -28,8 +30,7 @@ class ProgressDelegate(QStyledItemDelegate):
 		opt.textVisible = True
 		if status == 'error':
 			pal = opt.palette
-			col = QColor(225,26,82)
-			pal.setColor(QPalette.Highlight, col) # or QPalette::Window doesnt matter
+			pal.setColor(QPalette.Highlight, PALETTE.errorColour) # or QPalette::Window doesnt matter
 			opt.palette = pal
 		QApplication.style().drawControl(QStyle.CE_ProgressBar, opt, painter)
 
@@ -37,7 +38,7 @@ class ProgressDelegate(QStyledItemDelegate):
 class CheckboxDelegate(QStyledItemDelegate):
 	# https://stackoverflow.com/questions/36778577/qstyleditemdelegate-how-to-make-checkbox-button-to-change-its-state-on-click
 	def paint(self, painter, option, index):
-		isChecked = index.data(Qt.UserRole+1000)
+		isChecked = index.data(Qt.DisplayRole)
 
 		opt = QStyleOptionButton()
 		opt.rect = option.rect.adjusted(10,5,-10,-5)
@@ -52,9 +53,9 @@ class CheckboxDelegate(QStyledItemDelegate):
 
 	def editorEvent(self, event, model, option, index):
 		if event.type() == QEvent.MouseButtonRelease:
-			value = index.data(Qt.UserRole+1000)
+			value = index.data(Qt.DisplayRole)
 			# invert checkbox state
-			model.setData(index, not value, Qt.UserRole+1000)
+			model.setData(index, not value, Qt.DisplayRole)
 			return True
 
 		return QStyledItemDelegate.editorEvent(self, event, model, option, index)
@@ -72,7 +73,7 @@ class IconDelegate(QStyledItemDelegate):
 		self._iconDict = {'empty':self.emptyIcon,'good':self.goodIcon,'error':self.errorIcon,'proc':self.processingIcon}
 	
 	def paint(self, painter, option, index):
-		d = index.data(Qt.UserRole+1001)
+		d = index.data(Qt.DecorationRole)
 		icon = self._iconDict[d]
 		#option.rect = option.rect.adjusted(5,5,-5,-5)
 		#option.rect.setSize(QSize(15,15))

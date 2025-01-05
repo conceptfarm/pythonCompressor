@@ -7,8 +7,8 @@ class QtDarkPalette(QPalette):
 
 		self.baseAltColour = QColor(53, 53, 53)
 		self.baseColour = QColor(25, 25, 25)
-		#self.highlightColour = QColor(42, 130, 218)
 		self.highlightColour = QColor(0, 216, 226)
+		self.errorColour = QColor(225,26,82)
 
 		self.setColor(QPalette.Disabled, QPalette.Button, self.baseAltColour)
 		self.setColor(QPalette.Disabled, QPalette.ButtonText, self.baseAltColour)
