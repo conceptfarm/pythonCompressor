@@ -400,8 +400,7 @@ class MainWindow(QWidget):
 	#########################
 
 if __name__ == '__main__':
-	dirList: set = {r'Z:\24-2231_RealCold-Lockhart Facility\01_Frames\FINAL\01_FusionOutput\s01-07', r'Z:\24-2231_RealCold-Lockhart Facility\01_Frames\s01-07\02_Background'}
-	# dirList: set = set()
+	dirList: set = set()
 	
 	for arg in sys.argv:
 		if os.path.isdir(arg) == True:
